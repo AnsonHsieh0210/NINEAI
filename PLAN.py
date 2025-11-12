@@ -144,7 +144,7 @@ def parse_transparency_response(response_text):
 # ---------- 主流程與 UI ----------
 def main():
     st.set_page_config("📄 AI 介入透明性檢核", layout="wide")
-    st.title("📄 單一 PDF — 九大透明性原則自動分類網頁 (Gemini)")
+    st.title("📄 單一 PDF — 九大透明性原則自動分類系統 (Gemini)")
     st.markdown("上傳單一 PDF，系統會逐條檢查九大透明性原則是否在文件中明載，並產生可下載的 CSV 檔。")
 
     uploaded_pdf = st.file_uploader("📥 上傳 PDF 文件（單一檔案）", type=["pdf"], accept_multiple_files=False)
