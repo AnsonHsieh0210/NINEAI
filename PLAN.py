@@ -19,7 +19,7 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 # GitHub 倉儲設定
 REPO_OWNER = "AnsonHsieh0210"
-REPO_NAME = "NineAIforRAI"
+REPO_NAME = "NINEAI"
 FILE_PATH = "RAG.csv"
 
 if not GOOGLE_API_KEY:
