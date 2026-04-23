@@ -48,15 +48,15 @@ model = genai.GenerativeModel(
 
 # ---------- 2. 原則定義 ----------
 TRANSPARENCY_9 = [
-    {"title": "介入詳情及輸出", "desc": "需清楚定義產出的具體內容，如標記位置、風險評分（0-100 分）或分類建議，指引醫師解讀結果。"},
-    {"title": "介入目的", "desc": "說明 AI 的臨床用途（如輔助診斷、分流或篩查）及其預期解決的具體臨床痛點。"},
-    {"title": "警告與範圍外使用", "desc": "明確限制條件，告知醫師不適用情境（如特定機型、非適應症族群），並強調不得獨立作為診斷工具。"},
-    {"title": "開發詳情及輸入特徵", "desc": "揭露訓練資料來源、特徵維度（如年齡、像素、密度、腫塊）及採用的算法架構（如 CNN）。"},
-    {"title": "確保公平性的過程", "desc": "詳述如何檢查並減少演算法偏見，確保在不同種族、性別或年齡層表現的一致性。"},
-    {"title": "外部驗證過程", "desc": "展示在獨立真實世界數據上的表現，包含跨中心數量、硬體製造商分佈及組織學類型。"},
-    {"title": "量化表現指標", "desc": "提供靈敏度、特異性、AUC 等具體統計數據，作為醫師評估系統效能的基準。"},
-    {"title": "持續維護與監控", "desc": "描述部署後的技術支援、監控團隊及更新計畫，確保系統在臨床現場的穩定性。"},
-    {"title": "更新與持續驗證計畫", "desc": "規定再訓練頻率與定期驗證門檻，以應對醫療環境變遷導致的性能波動。"}
+    {"title": "介入詳情及輸出", "desc": "需清楚定義模型輸出，如標記位置、風險評分（0-100 分）或分類建議，指引醫師解讀結果。"},
+    {"title": "介入目的", "desc": "說明臨床用途（如輔助診斷、分流）及其預期解決痛點。"},
+    {"title": "警告與範圍外使用", "desc": "限制不適用情境（如特定機型、非適應症族群），並強調不得獨立作為診斷工具。"},
+    {"title": "開發詳情及輸入特徵", "desc": "揭露訓練資料來源、特徵維度（如年齡、性別、影像維度等）及模型架構（如 CNN）。"},
+    {"title": "確保公平性的過程", "desc": "詳述如何減少演算法偏見，確保在不同種族、性別或年齡層表現的一致性。"},
+    {"title": "外部驗證過程", "desc": "展示單一中心外部驗證或跨中心聯邦驗證在真實數據表現；若為聯邦驗證須詳列中心數量及各院資料量等資訊"},
+    {"title": "量化表現指標", "desc": "提供靈敏度、特異性、AUC 等具體統計數據，作為模型效能基準。"},
+    {"title": "持續維護與監控", "desc": "描述部署後的技術支援、監控團隊及更新計畫，確保系統在臨床現場穩定性。"},
+    {"title": "更新與持續驗證計畫", "desc": "規定再訓練頻率與定期驗證門檻，以應對醫療環境變遷的性能波動。"}
 ]
 
 GOVERNANCE_2 = [
@@ -240,7 +240,34 @@ def run_full_analysis(full_text):
             
     return {"t": results_t, "g": results_g}
 
-
+def convert_results_to_csv():
+    """將目前的分析結果轉換為 CSV 格式供下載"""
+    if 'res_t' not in st.session_state or st.session_state['res_t'] is None:
+        return None
+    
+    data = []
+    # 處理 9 大原則
+    for i, item in enumerate(st.session_state['res_t']):
+        data.append({
+            "分類": "九大透明性原則",
+            "項目": TRANSPARENCY_9[i]['title'],
+            "狀態": item['status'],
+            "摘要": item['summary'],
+            "建議": item['suggestion']
+        })
+    # 處理 2 大指標
+    for i, item in enumerate(st.session_state['res_g']):
+        data.append({
+            "分類": "核心治理指標",
+            "項目": GOVERNANCE_2[i]['title'],
+            "狀態": item['status'],
+            "摘要": item['summary'],
+            "建議": item['suggestion']
+        })
+    
+    df = pd.DataFrame(data)
+    # 使用 StringIO 轉為 CSV 字串
+    return df.to_csv(index=False).encode('utf-8-sig')
 
 # ---------- 4. UI 介面 ----------
 
@@ -294,7 +321,24 @@ def main():
             "建議": d['suggestion']
         } for i, d in enumerate(g_data)])
         st.table(df_g)
-
+        # ---------- 新增：下載報告區塊 ----------
+        st.divider()
+        st.subheader("📥 匯出檢核報告")
+        
+        csv_data = convert_results_to_csv()
+        if csv_data:
+            col1, col2 = st.columns([1, 4])
+            with col1:
+                st.download_button(
+                    label="💾 下載 CSV 報告",
+                    data=csv_data,
+                    file_name=f"醫療AI檢核報告_{datetime.datetime.now().strftime('%Y%m%d')}.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+            with col2:
+                st.caption("按鈕將下載包含透明性原則與治理指標的完整彙總表格。")
+                
         # 回饋收集
         st.divider()
         st.subheader("📝 訓練 AI 的判斷經驗 (RAG)")
