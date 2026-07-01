@@ -7,10 +7,11 @@ import pandas as pd
 import streamlit as st
 import fitz  # PyMuPDF
 import requests
+import plotly.graph_objects as go
+from googlesearch import search
 from io import StringIO
 from dotenv import load_dotenv
 import google.generativeai as genai
-from concurrent.futures import ThreadPoolExecutor
 
 # ---------- 1. 初始化與環境設定 ----------
 load_dotenv()
@@ -22,11 +23,13 @@ REPO_OWNER = "AnsonHsieh0210"
 REPO_NAME = "NINEAI"
 FILE_PATH = "RAG.csv"
 
-if not GOOGLE_API_KEY:
-    st.error("請在 .env 檔案中設定 GOOGLE_API_KEY")
+try:
+    genai.configure(api_key=GOOGLE_API_KEY)
+except (ValueError, TypeError) as e:
+    st.error(f"Google API 金鑰設定錯誤，請檢查 .env 檔案中的 GOOGLE_API_KEY。錯誤訊息: {e}")
     st.stop()
 
-genai.configure(api_key=GOOGLE_API_KEY)
+
 
 # 安全性設定
 SAFETY_SETTINGS = [
@@ -38,7 +41,7 @@ SAFETY_SETTINGS = [
 
 # 初始化模型
 model = genai.GenerativeModel(
-    model_name="gemini-2.5-pro", # 修正為官方正確版本號
+    model_name="gemini-pro", # 使用 gemini-pro 確保穩定
     generation_config={
         "response_mime_type": "application/json",
         "temperature": 0.1,
@@ -87,7 +90,6 @@ def get_rag_df_from_github():
     return pd.DataFrame(columns=["Principle", "UserFeedback"])
 
 
-
 def generalize_feedback(specific_feedback):
     # 1. 先定義 Prompt 內容
     prompt = f"""
@@ -99,15 +101,17 @@ def generalize_feedback(specific_feedback):
     return response.text.strip()     
 
 
-
-
 def update_rag_to_github(principle, feedback):
     """將回饋存入 GitHub"""
     url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
 
+    
     # 1. 取得現有資料
     df = get_rag_df_from_github()
+    if "UserFeedback" not in df.columns: # 處理空檔案或格式錯誤
+        df = pd.DataFrame(columns=["Principle", "UserFeedback"])
+
     res = requests.get(url, headers=headers)
     sha = res.json().get('sha') if res.status_code == 200 else None
 
@@ -146,22 +150,27 @@ def analyze_item(item, context_text, rag_history=""):
     
     【文件內容】
     {context_text[:12000]}
-    
-    請根據上述資訊，以 JSON 格式回覆：
+
+    請根據上述資訊，以 JSON 格式回覆。在 "summary" 中找到的資訊，請在 "source" 欄位中註明來源是「上傳文件」還是「網路資料」。
+    "pass_probability" 欄位請根據資訊的完整度與品質，預估此項目通過正式審查的機率 (0-100 的整數)。
     {{
       "status": "存在" 或 "不存在",
       "summary": "具體做法摘要",
-      "suggestion": "缺失建議"
+      "suggestion": "缺失建議",
+      "source": "上傳文件" 或 "網路資料" 或 "綜合" 或 "無",
+      "pass_probability": <預估通過機率 (0-100)>
     }}
     """
     try:
         response = model.generate_content(prompt)
         clean_text = re.sub(r"```json\n?|\n?```", "", response.text).strip()
-        return json.loads(clean_text)
+        result = json.loads(clean_text)
+        # 確保額外欄位存在，若模型忘記給，則補上預設值
+        result.setdefault("source", "未知")
+        result.setdefault("pass_probability", 0 if result.get("status") == "不存在" else 50)
+        return result
     except Exception as e:
-        return {"status": "檢核錯誤", "summary": f"API 錯誤: {str(e)}", "suggestion": ""}
-
-
+        return {"status": "檢核錯誤", "summary": f"API 錯誤: {str(e)}", "suggestion": "", "source": "錯誤", "pass_probability": 0}
 
 import numpy as np
 
@@ -170,15 +179,14 @@ def get_embedding(text):
     try:
         # 嘗試使用最通用的 embedding 模型名稱
         result = genai.embed_content(
-            model="models/gemini-embedding-001", # 如果 004 不行，001 是穩定首選
+            model="models/embedding-001", # 正確的 Gemini embedding 模型
             content=text,
             task_type="retrieval_query"
         )
         return result['embedding']
     except Exception as e:
-        # 如果還是失敗，拋出錯誤以便調試
-        st.error(f"Embedding 錯誤: {e}")
-        return [0] * 768  # 回傳零向量避免後續計算崩潰
+        st.error(f"Embedding 錯誤 (雲端模式): {e}")
+        return np.zeros(768)  # 回傳零向量避免後續計算崩潰
         
         
 
@@ -187,14 +195,68 @@ def cosine_similarity(v1, v2):
     return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
     
     
+def search_web_for_updates(text):
+    """從文本中提取關鍵字，並在網路上搜尋補充資料。"""
+    # 1. 提取關鍵字
+    try:
+        identifier_prompt = f"""
+        從以下醫療 AI 文件中，提取最關鍵的識別資訊以便網路搜尋。
+        請專注於：
+        1. 產品/模型的主要名稱 (中英文)
+        2. 開發或製造商名稱
+        3. 任何特定的型號或版本號
+        4. 衛福部或 FDA 的核准字號
+
+        文件內容：
+        {text[:4000]}
+
+        請以 JSON 格式回傳，鍵值為 "product_name", "manufacturer"。如果找不到，回傳空字串。
+        """
+        # 使用一個臨時的模型來處理這個 JSON 任務
+        text_model = genai.GenerativeModel(model_name="gemini-pro")
+        response = text_model.generate_content(identifier_prompt)
+        
+        # 處理可能的 markdown 標籤
+        clean_response = re.sub(r"```json\n?|\n?```", "", response.text).strip()
+        identifiers = json.loads(clean_response)
+        
+        product_name = identifiers.get("product_name", "")
+        manufacturer = identifiers.get("manufacturer", "")
+
+        if not product_name:
+            return "" # 如果沒有產品名稱，不進行搜尋
+
+        # 2. 建立搜尋查詢
+        query = f'"{product_name}" "{manufacturer}" 外部驗證 OR 公平性 OR performance metrics OR technical specifications'
+        st.info(f"🔍 正在以關鍵字「{query}」搜尋網路補充資料...")
+
+        # 3. 執行搜尋並取得前幾個結果的摘要 (此處使用 googlesearch-python)
+        search_results = []
+        # 使用 tld="com" 避免地域性結果，lang="zh-TW" 優先中文
+        for url in search(query, tld="com", lang="zh-TW", num=3, stop=3, pause=2):
+            search_results.append(f"- {url}")
+        
+        if not search_results:
+            return "未在網路上找到直接相關的補充資料。"
+        return "【網路補充資料】:\n" + "\n".join(search_results)
+
+    except Exception as e:
+        st.warning(f"網路搜尋時發生錯誤: {e}")
+        return ""
+
 def run_full_analysis(full_text):
     """執行二階段 RAG 分析"""
     # 1. 取得歷史 RAG 資料
     rag_df = get_rag_df_from_github()
+
     all_items = TRANSPARENCY_9 + GOVERNANCE_2
     
     results_t = []
     results_g = []
+
+    # 新增：執行網路搜尋並整合結果
+    web_context = search_web_for_updates(full_text)
+    enhanced_full_text = full_text + "\n\n---網路即時補充資料---\n" + web_context
     
     # 預先對 PDF 內容做 Embedding（取前 2000 字作為上下文代表，或切片處理）
     # 這裡建議取計畫書開頭，通常包含研究目標與方法
@@ -202,7 +264,7 @@ def run_full_analysis(full_text):
     try:
         pdf_vec = get_embedding(pdf_context)
     except:
-        pdf_vec = None
+        pdf_vec = np.zeros(768)
 
     for i, item in enumerate(all_items):
         history = ""
@@ -212,7 +274,7 @@ def run_full_analysis(full_text):
             # 第一階段：硬性篩選（只找標題完全相符的經驗）
             rel_rows = rag_df[rag_df["Principle"] == item["title"]].copy()
             
-            if not rel_rows.empty and pdf_vec is not None:
+            if not rel_rows.empty:
                 similarities = []
                 # 第二階段：語義篩選（計算歷史建議與「當前 PDF 內容」的相似度）
                 for fb in rel_rows["UserFeedback"].tolist():
@@ -222,7 +284,7 @@ def run_full_analysis(full_text):
                         sim = cosine_similarity(pdf_vec, fb_vec)
                         similarities.append(sim)
                     except:
-                        similarities.append(0)
+                        similarities.append(0.0)
                 
                 rel_rows["sim"] = similarities
                 # 取得最符合當前 PDF 情境的前 3 筆經驗
@@ -231,7 +293,7 @@ def run_full_analysis(full_text):
         # --- 方案 B：二階段檢索結束 ---
 
         # 執行 AI 分析
-        res = analyze_item(item, full_text, rag_history=history)
+        res = analyze_item(item, enhanced_full_text, rag_history=history)
         
         if i < 9:
             results_t.append(res)
@@ -269,6 +331,26 @@ def convert_results_to_csv():
     # 使用 StringIO 轉為 CSV 字串
     return df.to_csv(index=False).encode('utf-8-sig')
 
+def create_gauge_chart(value, title):
+    """使用 Plotly 創建儀錶板圖表"""
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=value,
+        title={'text': title, 'font': {'size': 14}},
+        gauge={
+            'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
+            'bar': {'color': "darkblue"},
+            'bgcolor': "white",
+            'borderwidth': 2,
+            'bordercolor': "gray",
+            'steps': [
+                {'range': [0, 50], 'color': 'rgba(255, 0, 0, 0.3)'},
+                {'range': [50, 80], 'color': 'rgba(255, 255, 0, 0.3)'},
+                {'range': [80, 100], 'color': 'rgba(0, 255, 0, 0.3)'}],
+        }))
+    fig.update_layout(height=200, margin={'t':40, 'b':30, 'l':30, 'r':30})
+    return fig
+
 # ---------- 4. UI 介面 ----------
 
 def main():
@@ -278,12 +360,49 @@ def main():
     if 'res_t' not in st.session_state:
         st.session_state['res_t'] = None
 
+    # 在 UI 中顯示當前模式
+    mode_display = "☁️ 雲端模式 (Google Gemini)"
+    st.subheader(mode_display)
+
     with st.sidebar:
         st.header("1. 檔案讀取")
-        pdf_file = st.file_uploader("上傳計畫書 PDF", type="pdf")
+        pdf_file = st.file_uploader("上傳計畫書 PDF (選填)", type="pdf")
+        st.info("若您上傳計畫書，系統將自動分析並填入部分欄位。")
+        st.divider()
+
+        st.header("2. AI 模型資訊")
+        
+        with st.expander("模型基本資料", expanded=True):
+            st.text_input("AI模型名稱")
+            st.text_input("AI Model Name")
+            st.text_area("AI模型摘要", max_chars=50, help="摘要上限 50 字")
+            st.text_area("AI Model Summary", max_chars=50, help="Summary max 50 characters")
+            st.text_area("產品介紹", max_chars=500, help="介紹上限 500 字")
+            st.text_area("Product Introduction", max_chars=500, help="Introduction max 500 characters")
+
+        with st.expander("成效指標 (Performance Metrics)", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.number_input("AUC", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+                st.number_input("靈敏度 (Sensitivity)", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+                st.number_input("陽性預測值 (PPV)", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+            with col2:
+                st.number_input("準確度 (Accuracy)", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+                st.number_input("特異度 (Specificity)", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+                st.number_input("陰性預測值 (NPV)", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+
+        with st.expander("維運計畫", expanded=True):
+            st.text_area("監測計畫 (Monitoring Plan)")
+            st.text_area("版本更新計畫 (Version Update Plan)")
+
+        st.divider()
+        st.header("3. 合規性分析")
         btn = st.button("🚀 開始分析", use_container_width=True)
         st.divider()
-        st.info("您的回饋建議將存入 AI 知識庫，用於強化未來分析結果。")
+        st.caption("您的回饋建議將存入 AI 知識庫，用於強化未來分析結果。")
+        st.divider()
+        st.caption("本網站內容由人工智慧生成，僅為參考用途。")
+        st.caption("聯絡信箱：AnsonHsieh@itri.org.tw")
 
     if pdf_file and btn:
         with st.spinner("正在讀取檔案並檢索歷史經驗..."):
@@ -304,10 +423,16 @@ def main():
                 if idx < len(t_data):
                     item = t_data[idx]
                     with cols[c]:
+                        # 創建儀錶板
+                        prob = item.get('pass_probability', 0)
+                        fig = create_gauge_chart(prob, f"{idx+1}. {TRANSPARENCY_9[idx]['title']}")
+                        st.plotly_chart(fig, use_container_width=True)
+                        
+                        # 顯示狀態與資料來源
                         color = "green" if item['status'] == "存在" else "red"
-                        st.markdown(f"### {idx+1}. {TRANSPARENCY_9[idx]['title']}")
-                        st.markdown(f"**狀態：** :{color}[{item['status']}]")
-                        st.info(item['summary'])
+                        source_text = item.get('source', '未知')
+                        st.markdown(f"**狀態:** :{color}[{item['status']}] | **來源:** {source_text}")
+                        st.info(f"**摘要:** {item['summary']}")
                         if item['suggestion']:
                             st.warning(f"💡 建議：{item['suggestion']}")
 
@@ -350,11 +475,11 @@ def main():
             with col2:
                 user_comment = st.text_area("修正建議 (AI 哪裡看錯了？)", placeholder="例如：『應加強對表格內數據的識別』或『此類資訊通常出現在附件的技術規格中』")
             submit_rag = st.form_submit_button("✅ 送出經驗並優化未來分析")
-            generalized_comment = generalize_feedback(user_comment)
 
             if submit_rag:
                 if not GITHUB_TOKEN:
                     st.error("請檢查 GITHUB_TOKEN 設定。")
+                    st.stop()
                 elif not user_comment:
                     st.warning("請填寫建議。")
                 else:
@@ -363,7 +488,7 @@ def main():
                     orig_sum = all_results[idx]['summary']
                     
                     with st.spinner("同步至 GitHub 中..."):
-                        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        generalized_comment = generalize_feedback(user_comment)
                         if update_rag_to_github(selected_title, generalized_comment):
                             st.success("回饋成功！下次分析將參考此經驗。")
                         else:
