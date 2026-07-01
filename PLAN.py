@@ -135,31 +135,10 @@ def update_rag_to_github(principle, feedback):
     put_res = requests.put(url, headers=headers, json=payload)
     return put_res.status_code in [200, 201]
 
-def analyze_item(item, context_text, rag_history=""):
-    """執行單項 AI 檢核"""
-    prompt = f"""
-    你是一位醫療 AI 合規性審查專家。請針對以下原則分析文件內容。
-    
-    【檢核原則】
-    原則：{item['title']}
-    定義：{item['desc']}
-    
-    【歷史修正參考 (RAG)】
-    以下是過去人工審查對「{item['title']}」類似內容的修正建議，請將這些經驗納入本次判斷考量：
-    {rag_history if rag_history else "尚無歷史參考資料。"}
-    
-    【文件內容】
-    {context_text[:12000]}
-
-    請根據上述資訊，以 JSON 格式回覆。在 "summary" 中找到的資訊，請在 "source" 欄位中註明來源是「上傳文件」還是「網路資料」。
-    "pass_probability" 欄位請根據資訊的完整度與品質，預估此項目通過正式審查的機率 (0-100 的整數)。
-    {{
-      "status": "存在" 或 "不存在",
-      "summary": "具體做法摘要",
-      "suggestion": "缺失建議",
-      "source": "上傳文件" 或 "網路資料" 或 "綜合" 或 "無",
-      "pass_probability": <預估通過機率 (0-100)>
-    }}
+def analyze_item_with_react(item, context_text, rag_df):
+    """
+    使用 ReAct 模式執行單項 AI 檢核。
+    這是一個代理人執行器 (Agent Executor)。
     """
     try:
         response = model.generate_content(prompt)
@@ -171,7 +150,113 @@ def analyze_item(item, context_text, rag_history=""):
         return result
     except Exception as e:
         return {"status": "檢核錯誤", "summary": f"API 錯誤: {str(e)}", "suggestion": "", "source": "錯誤", "pass_probability": 0}
+        
+def get_rag_history(principle_title: str, context_text: str, rag_df: pd.DataFrame) -> str:
+    """
+    工具 (Tool) 1: 根據原則標題和文件內容，從 RAG 資料庫中檢索最相關的歷史經驗。
+    """
+    if rag_df.empty or "UserFeedback" not in rag_df.columns:
+        return "RAG 知識庫是空的。"
 
+    rel_rows = rag_df[rag_df["Principle"] == principle_title].copy()
+    if rel_rows.empty:
+        return f"RAG 知識庫中沒有關於 '{principle_title}' 的歷史經驗。"
+
+    # 透過語義相似度找出最相關的歷史經驗
+    try:
+        pdf_context = context_text[:2000]
+        pdf_vec = get_embedding(pdf_context)
+        
+        similarities = []
+        for fb in rel_rows["UserFeedback"].tolist():
+            fb_vec = get_embedding(fb)
+            sim = cosine_similarity(pdf_vec, fb_vec)
+            similarities.append(sim)
+        
+        rel_rows["sim"] = similarities
+        top_3 = rel_rows.sort_values(by="sim", ascending=False).head(3)
+        history = "\n".join([f"- {row['UserFeedback']}" for _, row in top_3.iterrows()])
+        return f"關於 '{principle_title}' 的相關歷史經驗如下：\n{history}"
+    except Exception as e:
+        return f"檢索 RAG 歷史時發生錯誤: {e}"
+
+def tool_search_web(query: str) -> str:
+    """
+    工具 (Tool) 2: 執行網路搜尋並返回結果摘要。
+    """
+    try:
+        st.info(f"🔍 代理人正在執行網路搜尋: 「{query}」...")
+        search_results = []
+        for url in search(query, tld="com", lang="zh-TW", num=3, stop=3, pause=2):
+            search_results.append(f"- {url}")
+        
+        if not search_results:
+            return "觀察: 網路搜尋沒有找到相關結果。"
+        return "觀察: 網路搜尋找到以下連結，可能包含有用資訊：\n" + "\n".join(search_results)
+    except Exception as e:
+        return f"觀察: 網路搜尋工具發生錯誤: {e}"
+
+def agent_executor(item, full_text, rag_df):
+    """
+    ReAct 代理人執行器。
+    管理 "思考 -> 行動 -> 觀察" 的循環。
+    """
+    # 使用一個臨時的模型來處理 ReAct 循環，因為它需要純文字來回
+    agent_model = genai.GenerativeModel(model_name="gemini-pro")
+
+    # ReAct 的核心 Prompt
+    prompt_template = f"""
+你是一個醫療 AI 審查代理人。你的目標是根據文件內容，評估是否符合「{item['title']}」原則。
+
+你有以下工具可以使用：
+1. `get_rag_history(principle_title: str)`: 查詢與此原則相關的歷史修正建議。
+2. `tool_search_web(query: str)`: 當文件資訊不足時，上網搜尋補充資料。
+
+你的思考與行動必須遵循以下格式：
+**思考:** (你當前的分析和下一步計畫)
+**行動:** (tool_name[arg]) 或 **最終答案:** (你的 JSON 格式結論)
+
+--- 開始 ---
+**任務:** 評估文件是否符合原則「{item['title']}」。
+**原則定義:** {item['desc']}
+**文件內容 (摘要):** {full_text[:4000]}
+
+**思考:** 我需要評估文件是否滿足 '{item['title']}' 原則。首先，我應該檢查內部知識庫是否有相關的歷史經驗，這可以幫助我聚焦審查重點。
+**行動:** get_rag_history[{item['title']}]
+"""
+
+    conversation_history = [prompt_template]
+    max_turns = 5  # 防止無限循環
+
+    for _ in range(max_turns):
+        full_prompt = "\n".join(conversation_history)
+        response = agent_model.generate_content(full_prompt)
+        response_text = response.text.strip()
+        
+        conversation_history.append(response_text)
+
+        if "**最終答案:**" in response_text:
+            final_answer_part = response_text.split("**最終答案:**")[-1].strip()
+            try:
+                # 解析最終的 JSON 答案
+                result = json.loads(re.sub(r"```json\n?|\n?```", "", final_answer_part))
+                result.setdefault("pass_probability", 0 if result.get("status") == "不存在" else 50)
+                return result
+            except Exception as e:
+                return {"status": "格式錯誤", "summary": f"無法解析最終答案: {e}", "suggestion": "", "source": "錯誤", "pass_probability": 0}
+        
+        elif "**行動:**" in response_text:
+            action_part = response_text.split("**行動:**")[-1].strip()
+            if action_part.startswith("get_rag_history"):
+                observation = get_rag_history(item['title'], full_text, rag_df)
+            elif action_part.startswith("tool_search_web"):
+                query = action_part.split("[", 1)[1].split("]")[0]
+                observation = tool_search_web(query)
+            else:
+                observation = "未知的行動。"
+            conversation_history.append(f"**觀察:** {observation}")
+
+    return {"status": "超時", "summary": "代理人執行超過最大輪次，未能得出結論。", "suggestion": "請檢查文件內容或簡化問題。", "source": "錯誤", "pass_probability": 0}
 import numpy as np
 
 def get_embedding(text):
@@ -194,106 +279,22 @@ def cosine_similarity(v1, v2):
     """計算餘弦相似度"""
     return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
     
-    
-def search_web_for_updates(text):
-    """從文本中提取關鍵字，並在網路上搜尋補充資料。"""
-    # 1. 提取關鍵字
-    try:
-        identifier_prompt = f"""
-        從以下醫療 AI 文件中，提取最關鍵的識別資訊以便網路搜尋。
-        請專注於：
-        1. 產品/模型的主要名稱 (中英文)
-        2. 開發或製造商名稱
-        3. 任何特定的型號或版本號
-        4. 衛福部或 FDA 的核准字號
-
-        文件內容：
-        {text[:4000]}
-
-        請以 JSON 格式回傳，鍵值為 "product_name", "manufacturer"。如果找不到，回傳空字串。
-        """
-        # 使用一個臨時的模型來處理這個 JSON 任務
-        text_model = genai.GenerativeModel(model_name="gemini-pro")
-        response = text_model.generate_content(identifier_prompt)
-        
-        # 處理可能的 markdown 標籤
-        clean_response = re.sub(r"```json\n?|\n?```", "", response.text).strip()
-        identifiers = json.loads(clean_response)
-        
-        product_name = identifiers.get("product_name", "")
-        manufacturer = identifiers.get("manufacturer", "")
-
-        if not product_name:
-            return "" # 如果沒有產品名稱，不進行搜尋
-
-        # 2. 建立搜尋查詢
-        query = f'"{product_name}" "{manufacturer}" 外部驗證 OR 公平性 OR performance metrics OR technical specifications'
-        st.info(f"🔍 正在以關鍵字「{query}」搜尋網路補充資料...")
-
-        # 3. 執行搜尋並取得前幾個結果的摘要 (此處使用 googlesearch-python)
-        search_results = []
-        # 使用 tld="com" 避免地域性結果，lang="zh-TW" 優先中文
-        for url in search(query, tld="com", lang="zh-TW", num=3, stop=3, pause=2):
-            search_results.append(f"- {url}")
-        
-        if not search_results:
-            return "未在網路上找到直接相關的補充資料。"
-        return "【網路補充資料】:\n" + "\n".join(search_results)
-
-    except Exception as e:
-        st.warning(f"網路搜尋時發生錯誤: {e}")
-        return ""
-
 def run_full_analysis(full_text):
-    """執行二階段 RAG 分析"""
+    """
+    執行完整的 ReAct 分析流程。
+    """
     # 1. 取得歷史 RAG 資料
     rag_df = get_rag_df_from_github()
 
     all_items = TRANSPARENCY_9 + GOVERNANCE_2
-    
     results_t = []
     results_g = []
 
-    # 新增：執行網路搜尋並整合結果
-    web_context = search_web_for_updates(full_text)
-    enhanced_full_text = full_text + "\n\n---網路即時補充資料---\n" + web_context
-    
-    # 預先對 PDF 內容做 Embedding（取前 2000 字作為上下文代表，或切片處理）
-    # 這裡建議取計畫書開頭，通常包含研究目標與方法
-    pdf_context = full_text[:2000]
-    try:
-        pdf_vec = get_embedding(pdf_context)
-    except:
-        pdf_vec = np.zeros(768)
-
     for i, item in enumerate(all_items):
-        history = ""
-        
-        # --- 方案 B：二階段檢索開始 ---
-        if not rag_df.empty and "UserFeedback" in rag_df.columns:
-            # 第一階段：硬性篩選（只找標題完全相符的經驗）
-            rel_rows = rag_df[rag_df["Principle"] == item["title"]].copy()
-            
-            if not rel_rows.empty:
-                similarities = []
-                # 第二階段：語義篩選（計算歷史建議與「當前 PDF 內容」的相似度）
-                for fb in rel_rows["UserFeedback"].tolist():
-                    try:
-                        fb_vec = get_embedding(fb)
-                        # 計算 PDF 內容與歷史回饋的相關性
-                        sim = cosine_similarity(pdf_vec, fb_vec)
-                        similarities.append(sim)
-                    except:
-                        similarities.append(0.0)
-                
-                rel_rows["sim"] = similarities
-                # 取得最符合當前 PDF 情境的前 3 筆經驗
-                top_3 = rel_rows.sort_values(by="sim", ascending=False).head(3)
-                history = "\n".join([f"- {row['UserFeedback']}" for _, row in top_3.iterrows()])
-        # --- 方案 B：二階段檢索結束 ---
-
-        # 執行 AI 分析
-        res = analyze_item(item, enhanced_full_text, rag_history=history)
+        # 為每個項目啟動一個獨立的 ReAct 代理人
+        with st.status(f"代理人正在分析: {item['title']}...", expanded=False) as status:
+            res = agent_executor(item, full_text, rag_df)
+            status.update(label=f"分析完成: {item['title']}", state="complete")
         
         if i < 9:
             results_t.append(res)
