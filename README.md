@@ -47,10 +47,10 @@ Bash
 git clone https://github.com/AnsonHsieh0210/NINEAI.git
 cd NINEAI
 2. 安裝必要套件
-本系統使用 PyMuPDF 進行 PDF 文本高效率提取，並利用 requests 與 GitHub API 進行 RAG 數據同步：
+首先，建立一個 `requirements.txt` 檔案，其中包含所有必要的套件。接著，使用 pip 一次性安裝所有依賴：
 
 Bash
-pip install streamlit pymupdf pandas numpy requests python-dotenv google-generativeai
+pip install -r requirements.txt
 3. 配置環境變數 (.env)
 在專案根目錄下建立一個 .env 檔案，並配置您的 Google AI API Key 與 GitHub Personal Access Token：
 
