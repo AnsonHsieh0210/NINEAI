@@ -96,3 +96,37 @@
 2026-07-03 08:48:34,375 [INFO] - Successfully uploaded log file to GitHub.
 2026-07-03 08:50:27,480 [INFO] - Successfully fetched existing analysis history.
 2026-07-03 08:50:28,081 [INFO] - Successfully saved analysis history to GitHub.
+2026-07-03 08:50:28,879 [INFO] - Successfully uploaded log file to GitHub.
+2026-07-03 09:15:46,305 [INFO] - Attempting to fetch RAG file from GitHub: https://api.github.com/repos/AnsonHsieh0210/NINEAI/contents/RAG.csv
+2026-07-03 09:15:46,745 [INFO] - Successfully fetched RAG file.
+2026-07-03 09:15:57,903 [WARNING] - Embedding model text-embedding-004 failed: Model names should start with `models/` or `tunedModels/`, got: text-embedding-004. Trying next model.
+2026-07-03 09:15:57,987 [WARNING] - Embedding model models/embedding-001 failed: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.. Trying next model.
+2026-07-03 09:15:57,988 [ERROR] - All embedding models failed. Last error: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-07-03 09:15:57,990 [WARNING] - Embedding model text-embedding-004 failed: Model names should start with `models/` or `tunedModels/`, got: text-embedding-004. Trying next model.
+2026-07-03 09:15:58,109 [WARNING] - Embedding model models/embedding-001 failed: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.. Trying next model.
+2026-07-03 09:15:58,110 [ERROR] - All embedding models failed. Last error: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-07-03 09:16:13,496 [INFO] - Successfully analyzed item '介入詳情及輸出'.
+2026-07-03 09:16:27,117 [INFO] - Successfully analyzed item '介入目的'.
+2026-07-03 09:16:41,711 [INFO] - Successfully analyzed item '警告與範圍外使用'.
+2026-07-03 09:16:56,936 [INFO] - Successfully analyzed item '開發詳情及輸入特徵'.
+2026-07-03 09:17:10,278 [INFO] - Successfully analyzed item '確保公平性的過程'.
+2026-07-03 09:17:22,862 [INFO] - Successfully analyzed item '外部驗證過程'.
+2026-07-03 09:17:22,929 [WARNING] - Embedding model text-embedding-004 failed: Model names should start with `models/` or `tunedModels/`, got: text-embedding-004. Trying next model.
+2026-07-03 09:17:23,017 [WARNING] - Embedding model models/embedding-001 failed: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.. Trying next model.
+2026-07-03 09:17:23,017 [ERROR] - All embedding models failed. Last error: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-07-03 09:17:23,018 [WARNING] - Embedding model text-embedding-004 failed: Model names should start with `models/` or `tunedModels/`, got: text-embedding-004. Trying next model.
+2026-07-03 09:17:23,178 [WARNING] - Embedding model models/embedding-001 failed: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.. Trying next model.
+2026-07-03 09:17:23,181 [ERROR] - All embedding models failed. Last error: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-07-03 09:17:33,718 [INFO] - Successfully analyzed item '量化表現指標'.
+2026-07-03 09:17:43,797 [INFO] - Successfully analyzed item '持續維護與監控'.
+2026-07-03 09:17:55,431 [INFO] - Successfully analyzed item '更新與持續驗證計畫'.
+2026-07-03 09:17:55,485 [WARNING] - Embedding model text-embedding-004 failed: Model names should start with `models/` or `tunedModels/`, got: text-embedding-004. Trying next model.
+2026-07-03 09:17:55,565 [WARNING] - Embedding model models/embedding-001 failed: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.. Trying next model.
+2026-07-03 09:17:55,566 [ERROR] - All embedding models failed. Last error: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-07-03 09:17:55,567 [WARNING] - Embedding model text-embedding-004 failed: Model names should start with `models/` or `tunedModels/`, got: text-embedding-004. Trying next model.
+2026-07-03 09:17:55,687 [WARNING] - Embedding model models/embedding-001 failed: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.. Trying next model.
+2026-07-03 09:17:55,687 [ERROR] - All embedding models failed. Last error: 404 models/embedding-001 is not found for API version v1beta, or is not supported for embedContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-07-03 09:18:13,123 [INFO] - Successfully analyzed item '可解釋性分析'.
+2026-07-03 09:18:26,197 [INFO] - Successfully analyzed item 'AI生命週期管理'.
+2026-07-03 09:20:58,535 [INFO] - Successfully fetched existing analysis history.
+2026-07-03 09:20:59,195 [INFO] - Successfully saved analysis history to GitHub.
