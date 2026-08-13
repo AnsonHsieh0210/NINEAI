@@ -267,7 +267,6 @@ def get_rag_df_from_github():
             
     return pd.DataFrame(columns=["Principle", "UserFeedback"])
 
-
 def generalize_feedback(specific_feedback):
     # 1. 先定義 Prompt 內容
     prompt = f"""A user provided specific feedback for a medical AI review: '{specific_feedback}'
@@ -938,6 +937,26 @@ def convert_results_to_csv():
     # 使用 StringIO 轉為 CSV 字串
     return df.to_csv(index=False).encode('utf-8-sig')
 
+def create_gauge_chart(value, title):
+    """使用 Plotly 創建儀錶板圖表"""
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=value,
+        title={'text': title, 'font': {'size': 14}},
+        gauge={
+            'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
+            'bar': {'color': "darkblue"},
+            'bgcolor': "white",
+            'borderwidth': 2,
+            'bordercolor': "gray",
+            'steps': [
+                {'range': [0, 50], 'color': 'rgba(255, 0, 0, 0.3)'},
+                {'range': [50, 80], 'color': 'rgba(255, 255, 0, 0.3)'},
+                {'range': [80, 100], 'color': 'rgba(0, 255, 0, 0.3)'}],
+        }))
+    fig.update_layout(height=200, margin={'t':40, 'b':30, 'l':30, 'r':30})
+    return fig
+
 # ---------- 4. UI 介面 ----------
 
 def generate_radar_chart(results_t):
@@ -1014,6 +1033,10 @@ def main():
 
     # 在 UI 中顯示當前模式
     mode_display = "☁️ 雲端智慧分析模式"
+    st.subheader(mode_display)
+
+    # 在 UI 中顯示當前模式
+    mode_display = "☁️ 雲端模式 (Google Gemini)"
     st.subheader(mode_display)
 
     with st.sidebar:
