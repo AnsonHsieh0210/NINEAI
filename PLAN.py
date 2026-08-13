@@ -47,10 +47,10 @@ EMBEDDING_MODELS = [
 ]
 
 if not GOOGLE_API_KEY:
-    st.error("⚠️ 偵測到未設定 GOOGLE_API_KEY 或 GEMINI_API_KEY！\n\n"
+    st.error("⚠️ 偵測到未設定 GOOGLE_API_KEY / 雲端金鑰！\n\n"
              "如果您是在本地端執行，請確認專案目錄下已建立 `.env` 檔案並填入 `GOOGLE_API_KEY=your_key_here`。\n\n"
              "如果此專案已部署至 Hugging Face Space，請至該 Space 的 **Settings** -> **Variables and secrets** 區塊，"
-             "點擊 **New secret** 並新增名為 `GOOGLE_API_KEY` 的 Secret，其值填入您的 Gemini API 金鑰。設定後 Space 會自動重啟，即可正常運作！")
+             "點擊 **New secret** 並新增名為 `GOOGLE_API_KEY` 的 Secret，其值填入您的 雲端模型 API 金鑰。設定後 Space 會自動重啟，即可正常運作！")
     st.stop()
 
 try:
@@ -1033,10 +1033,6 @@ def main():
 
     # 在 UI 中顯示當前模式
     mode_display = "☁️ 雲端智慧分析模式"
-    st.subheader(mode_display)
-
-    # 在 UI 中顯示當前模式
-    mode_display = "☁️ 雲端模式 (Google Gemini)"
     st.subheader(mode_display)
 
     with st.sidebar:
