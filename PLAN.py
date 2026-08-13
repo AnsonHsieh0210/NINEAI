@@ -46,6 +46,13 @@ EMBEDDING_MODELS = [
     "models/embedding-001", # 若新版失敗，則備援至舊版
 ]
 
+if not GOOGLE_API_KEY:
+    st.error("⚠️ 偵測到未設定 GOOGLE_API_KEY 或 GEMINI_API_KEY！\n\n"
+             "如果您是在本地端執行，請確認專案目錄下已建立 `.env` 檔案並填入 `GOOGLE_API_KEY=your_key_here`。\n\n"
+             "如果此專案已部署至 Hugging Face Space，請至該 Space 的 **Settings** -> **Variables and secrets** 區塊，"
+             "點擊 **New secret** 並新增名為 `GOOGLE_API_KEY` 的 Secret，其值填入您的 Gemini API 金鑰。設定後 Space 會自動重啟，即可正常運作！")
+    st.stop()
+
 try:
     genai.configure(api_key=GOOGLE_API_KEY)
 except (ValueError, TypeError) as e:
