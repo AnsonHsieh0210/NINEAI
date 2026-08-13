@@ -1,3 +1,14 @@
+---
+title: 負責任 AI 自動檢核系統
+emoji: 🛡️
+colorFrom: blue
+colorTo: green
+sdk: streamlit
+python_version: "3.11"
+app_file: PLAN.py
+pinned: false
+---
+
 負責任 AI 自動檢核系統 (Medical AI Audit System) — v3.1 專家 RAG 強化版
 本專案是一套專為醫療 AI 專案管理與 IRB / TFDA 計畫書審查打造的自動化合規檢核平台。系統採用 Streamlit 建立前端互動介面，並以 Gemini 3.1 Pro 語言模型為核心推理引擎，協助研究人員與審查委員快速、深度地評估計畫書的合規性。
 
@@ -47,10 +58,10 @@ Bash
 git clone https://github.com/AnsonHsieh0210/NINEAI.git
 cd NINEAI
 2. 安裝必要套件
-本系統使用 PyMuPDF 進行 PDF 文本高效率提取，並利用 requests 與 GitHub API 進行 RAG 數據同步：
+首先，建立一個 `requirements.txt` 檔案，其中包含所有必要的套件。接著，使用 pip 一次性安裝所有依賴：
 
 Bash
-pip install streamlit pymupdf pandas numpy requests python-dotenv google-generativeai
+pip install -r requirements.txt
 3. 配置環境變數 (.env)
 在專案根目錄下建立一個 .env 檔案，並配置您的 Google AI API Key 與 GitHub Personal Access Token：
 
@@ -61,7 +72,7 @@ GITHUB_TOKEN=your_github_token_here
 
 4. 啟動 Streamlit 服務
 Bash
-streamlit run app.py
+streamlit run PLAN.py
 啟動後，瀏覽器將自動開啟本地網頁（預設為 http://localhost:8501）。
 
 📈 專案未來演進：走向 AI Studio 微調
