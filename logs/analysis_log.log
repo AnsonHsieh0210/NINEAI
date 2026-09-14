@@ -4180,3 +4180,920 @@ message: "API key not valid. Please pass a valid API key."
 ]
 2026-09-14 11:52:42,408 [INFO] - Successfully fetched existing analysis history.
 2026-09-14 11:52:43,244 [INFO] - Successfully saved analysis history to GitHub.
+2026-09-14 11:52:44,256 [INFO] - Successfully uploaded log file to GitHub.
+2026-09-14 11:53:21,022 [INFO] - Attempting to fetch RAG file from GitHub: https://api.github.com/repos/AnsonHsieh0210/NINEAI/contents/RAG.csv
+2026-09-14 11:53:21,198 [INFO] - Successfully fetched RAG file from GitHub.
+2026-09-14 11:53:21,805 [ERROR] - Failed to extract metadata: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 813, in extract_metadata
+    response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json", "temperature": 0.0})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:22,485 [ERROR] - Error during direct analysis for item '開發詳情及輸入特徵': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:22,615 [ERROR] - Error during direct analysis for item '介入目的': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:22,698 [ERROR] - Error during direct analysis for item '警告與範圍外使用': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:22,721 [ERROR] - Error during direct analysis for item '確保公平性的過程': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:22,737 [ERROR] - Error during direct analysis for item '介入詳情及輸出': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:22,864 [ERROR] - Error during direct analysis for item '外部驗證過程': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:23,013 [ERROR] - Error during direct analysis for item '量化表現指標': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:23,244 [ERROR] - Error during direct analysis for item '持續維護與監控': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:23,412 [ERROR] - Error during direct analysis for item '更新與持續驗證計畫': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:23,426 [ERROR] - Error during direct analysis for item '可解釋性分析': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:23,525 [ERROR] - Error during direct analysis for item 'AI生命週期管理': 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 55, in error_remapped_callable
+    return callable_(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+                             ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 331, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 447, in result
+    raise self
+  File "/usr/local/lib/python3.11/site-packages/grpc/_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 1182, in with_call
+    return _end_unary_response_blocking(state, call, True, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/grpc/_channel.py", line 999, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INVALID_ARGUMENT
+	details = "API key not valid. Please pass a valid API key."
+	debug_error_string = "INVALID_ARGUMENT:API key not valid. Please pass a valid API key."
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/PLAN.py", line 643, in perform_direct_analysis
+    response = model.generate_content(content_parts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 128, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 295, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 157, in retry_target
+    next_sleep = _retry_error_helper(
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 215, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 148, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 57, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InvalidArgument: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2026-09-14 11:53:23,748 [INFO] - Successfully fetched existing analysis history.
+2026-09-14 11:53:24,663 [INFO] - Successfully saved analysis history to GitHub.
