@@ -41,9 +41,10 @@ LOG_FILE_PATH_ON_GITHUB = "logs/analysis_log.log" # 新增：GitHub 上的日誌
 # 模型設定常數
 QUALITY_MODEL = "gemini-2.5-pro"
 EMBEDDING_MODELS = [
-    os.getenv("GOOGLE_EMBEDDING_MODEL", "text-embedding-004"), # 優先使用新版模型
-    "models/embedding-001", # 若新版失敗，則備援至舊版
+    os.getenv("GOOGLE_EMBEDDING_MODEL", "models/gemini-embedding-001"), # 優先使用穩定版模型
+    "models/gemini-embedding-2", # 若主要模型失敗，則備援至次一版本
 ]
+EMBEDDING_DIM = 3072 # 上述 Gemini embedding 模型的輸出維度
 # 傳入 Gemini 的文件內容截斷長度，避免超過 context 限制與不必要的 Token 成本
 DOCUMENT_CONTEXT_MAX_CHARS = 12000
 
@@ -475,7 +476,7 @@ def upload_log_to_github() -> bool:
 def get_embedding(text):
     """將文字轉換為向量 - 修正模型路徑"""
     if not text:
-        return np.zeros(768)
+        return np.zeros(EMBEDDING_DIM)
 
     last_error = None
     try:
@@ -495,7 +496,7 @@ def get_embedding(text):
 
     logging.error(f"All embedding models failed. Last error: {last_error}")
     st.warning("Embedding 服務暫時無法使用，將影響歷史經驗的相關性排序。")
-    return np.zeros(768)  # 回傳零向量避免後續計算崩潰
+    return np.zeros(EMBEDDING_DIM)  # 回傳零向量避免後續計算崩潰
         
         
 
