@@ -151,21 +151,23 @@ model = genai.GenerativeModel(
 )
 
 # ---------- 2. 原則定義 ----------
+# 註：desc 為送給 Gemini 分析用的英文定義（維持既有分析行為不變）；
+# desc_zh 為顯示給使用者看的正體中文官方標準定義（與 README 保持一致）。
 TRANSPARENCY_9 = [
-    {"title": "介入詳情及輸出", "desc": "Clearly define the model's output, such as marked locations, risk scores (0-100), or classification suggestions, to guide physicians in interpreting the results."},
-    {"title": "介入目的", "desc": "Explain the clinical use (e.g., diagnostic aid, triage) and the intended pain points it aims to solve."},
-    {"title": "警告與範圍外使用", "desc": "Specify inapplicable scenarios (e.g., specific device models, non-indicated populations) and emphasize that it must not be used as a standalone diagnostic tool."},
-    {"title": "開發詳情及輸入特徵", "desc": "Disclose the training data sources, feature dimensions (e.g., age, gender, image dimensions), and model architecture (e.g., CNN)."},
-    {"title": "確保公平性的過程", "desc": "Detail the process for mitigating algorithmic bias to ensure consistent performance across different races, genders, or age groups."},
-    {"title": "外部驗證過程", "desc": "Present performance on real-world data through single-center external validation or multi-center federated validation. For federated validation, detail the number of centers and the data volume from each."},
-    {"title": "量化表現指標", "desc": "Provide specific quantitative performance metrics such as sensitivity, specificity, and AUC to serve as a performance benchmark."},
-    {"title": "持續維護與監控", "desc": "Describe post-deployment technical support, monitoring teams, and update plans to ensure system stability in the clinical environment."},
-    {"title": "更新與持續驗證計畫", "desc": "Define the retraining frequency and periodic validation thresholds to address performance fluctuations due to changes in the medical environment."}
+    {"title": "介入詳情及輸出", "desc": "Clearly define the model's output, such as marked locations, risk scores (0-100), or classification suggestions, to guide physicians in interpreting the results.", "desc_zh": "驗證模型輸出形式（如風險評分、量化區間）與臨床解讀指引。"},
+    {"title": "介入目的", "desc": "Explain the clinical use (e.g., diagnostic aid, triage) and the intended pain points it aims to solve.", "desc_zh": "評估臨床用途（輔助診斷、分流、篩查）及目標疾病、受測族群之限制。"},
+    {"title": "警告與範圍外使用", "desc": "Specify inapplicable scenarios (e.g., specific device models, non-indicated populations) and emphasize that it must not be used as a standalone diagnostic tool.", "desc_zh": "檢查設備限制與明確的排除準則 (Exclusion Criteria)。"},
+    {"title": "開發詳情及輸入特徵", "desc": "Disclose the training data sources, feature dimensions (e.g., age, gender, image dimensions), and model architecture (e.g., CNN).", "desc_zh": "審核訓練資料的時空分佈、特徵維度與演算法架構。"},
+    {"title": "確保公平性的過程", "desc": "Detail the process for mitigating algorithmic bias to ensure consistent performance across different races, genders, or age groups.", "desc_zh": "檢查是否針對敏感屬性（性別、年齡、種族）進行性能分層分析。"},
+    {"title": "外部驗證過程", "desc": "Present performance on real-world data through single-center external validation or multi-center federated validation. For federated validation, detail the number of centers and the data volume from each.", "desc_zh": "從嚴審查是否具備完全獨立的中心驗證數據，或跨設備硬體（如 GE, Philips）之相容性測試。"},
+    {"title": "量化表現指標", "desc": "Provide specific quantitative performance metrics such as sensitivity, specificity, and AUC to serve as a performance benchmark.", "desc_zh": "檢查統計數據是否完整（如包含 95% 信賴區間、NPV/PPV 等臨床指標）。"},
+    {"title": "持續維護與監控", "desc": "Describe post-deployment technical support, monitoring teams, and update plans to ensure system stability in the clinical environment.", "desc_zh": "評估部署後的模型漂移 (Model Drift) 監測指標與錯誤處理機制。"},
+    {"title": "更新與持續驗證計畫", "desc": "Define the retraining frequency and periodic validation thresholds to address performance fluctuations due to changes in the medical environment.", "desc_zh": "審查模型再訓練 (Retraining) 的頻率與更新後的效能驗證流程。"}
 ]
 
 GOVERNANCE_2 = [
-    {"title": "可解釋性分析", "desc": "Explainability analysis in medical AI refers to the techniques and methods used to explain and understand how an AI model makes predictions or decisions. This is crucial in the medical field, as transparency and trust are essential for the adoption of AI tools. The goal is to provide insight into the AI system's decision-making process, ensuring clinicians can understand and validate its outputs."},
-    {"title": "AI生命週期管理", "desc": "AI lifecycle effectiveness monitoring in clinical medicine involves the continuous monitoring and evaluation of an AI system's effectiveness throughout its entire lifecycle. This process includes not only the development and deployment phases but also subsequent operation, maintenance, and improvement. Such monitoring ensures that the AI system's performance in a real-world clinical environment consistently meets expectations and can adapt to changing medical needs and data characteristics by implementing a regular performance monitoring plan."}
+    {"title": "可解釋性分析", "desc": "Explainability analysis in medical AI refers to the techniques and methods used to explain and understand how an AI model makes predictions or decisions. This is crucial in the medical field, as transparency and trust are essential for the adoption of AI tools. The goal is to provide insight into the AI system's decision-making process, ensuring clinicians can understand and validate its outputs.", "desc_zh": "評估技術解釋（如 Heatmap）是否與臨床放射徵象對照，以及醫師如何驗證模型結果。"},
+    {"title": "AI生命週期管理", "desc": "AI lifecycle effectiveness monitoring in clinical medicine involves the continuous monitoring and evaluation of an AI system's effectiveness throughout its entire lifecycle. This process includes not only the development and deployment phases but also subsequent operation, maintenance, and improvement. Such monitoring ensures that the AI system's performance in a real-world clinical environment consistently meets expectations and can adapt to changing medical needs and data characteristics by implementing a regular performance monitoring plan.", "desc_zh": "審查從開發、上市後監測 (Post-market Surveillance) 到退場機制的全流程風險評估。"}
 ]
 
 EXPERT_RUBRICS = {
@@ -924,6 +926,7 @@ def convert_results_to_csv():
         data.append({
             "分類": "九大透明性原則",
             "項目": TRANSPARENCY_9[i]['title'],
+            "官方定義": TRANSPARENCY_9[i]['desc_zh'],
             "狀態": _translate_status_to_zh(item.get('status', 'Unknown')),
             "符合機率": f"{item.get('pass_probability', 0)}%",
             "摘要": item.get('summary_zh', '無摘要或翻譯失敗'),
@@ -934,6 +937,7 @@ def convert_results_to_csv():
         data.append({
             "分類": "核心治理指標",
             "項目": GOVERNANCE_2[i]['title'],
+            "官方定義": GOVERNANCE_2[i]['desc_zh'],
             "狀態": _translate_status_to_zh(item.get('status', 'Unknown')),
             "符合機率": f"{item.get('pass_probability', 0)}%",
             "摘要": item.get('summary_zh', '無摘要或翻譯失敗'),
@@ -993,6 +997,30 @@ def main():
     # 在 UI 中顯示當前模式
     mode_display = "☁️ 雲端智慧分析模式"
     st.subheader(mode_display)
+
+    with st.expander("📖 使用說明（第一次使用請先展開閱讀）", expanded=False):
+        st.markdown(
+            """
+本系統提供兩種檢核模式，請依您目前的需求選擇對應分頁：
+
+**📑 計畫書全文 PDF 檢核（Full PDF Analysis）**
+1. **上傳計畫書**：上傳您的醫療器材軟體計畫書 PDF 檔案。
+2. **分析引擎設定**：可選擇是否啟用「多模態圖片分析」（會將 PDF 頁面截圖一併送給模型分析流程圖、圖表，較耗費時間與 Token），並設定最多分析前幾頁的圖片。
+3. 點擊「🚀 開始分析」，系統會並行檢核九大透明性原則與 2 大核心治理指標，並自動從 PDF 中擷取模型名稱、成效數據等補充資訊。
+4. 分析完成後，可在「檢視分析結果」區塊查看每項指標的**狀態、符合機率、來源與具體修改建議**。
+5. 在「後續操作」區塊可以：
+   - 匯出完整 CSV 報告
+   - 針對特定指標填寫修正回饋，回饋會存入知識庫，用於強化未來的分析品質
+   - 手動填寫或校正補充報告資訊（模型名稱、成效指標、維運計畫等）
+
+**✍️ 登錄內文專家檢核（Direct Draft Audit）**
+1. 選擇您正在撰寫的指標項目，系統會顯示該項目的官方標準定義。
+2. 貼上或輸入您擬定的填報文字草稿。
+3. 點擊「🚀 執行專家系統審核」，系統會依專家審查標準給出**合規評分、退件原因、修改建議**，並提供一份可直接複製使用的修正範本。
+
+💡 所有分析結果僅供參考，正式送審前仍請您以專業判斷覆核內容。
+            """
+        )
 
     with st.sidebar:
         st.title(" ") # 佔位符
@@ -1078,6 +1106,7 @@ def main():
                             # 顯示標題和分數
                             prob = item.get('pass_probability', 0)
                             st.subheader(f"{idx+1}. {TRANSPARENCY_9[idx]['title']}")
+                            st.caption(f"📖 官方定義：{TRANSPARENCY_9[idx]['desc_zh']}")
                             st.markdown(f"**符合機率:** {prob}%")
                             st.divider()
                             
@@ -1099,6 +1128,7 @@ def main():
             g_data = st.session_state['res_g']
             df_g = pd.DataFrame([{
                 "評估項目": GOVERNANCE_2[i]['title'],
+                "官方定義": GOVERNANCE_2[i]['desc_zh'],
                 "狀態": _translate_status_to_zh(d.get('status', 'Unknown')),
                 "符合機率": f"{d.get('pass_probability', 0)}%",
                 "摘要": d.get('summary_zh', '無摘要或翻譯失敗'),
@@ -1217,7 +1247,7 @@ def main():
         selected_item = next(i for i in all_items if i['title'] == selected_title)
         
         # Show description of principle
-        st.info(f"💡 **該項指標官方標準定義：**\n{selected_item['desc']}")
+        st.info(f"💡 **該項指標官方標準定義：**\n{selected_item['desc_zh']}")
         
         # Text area for user draft
         draft_text = st.text_area(
