@@ -15,6 +15,7 @@ import logging
 import numpy as np
 import google.generativeai as genai
 import concurrent.futures
+import threading
 
 # ---------- 1. 初始化與環境設定 ----------
 # ---------- Logging Setup ----------
@@ -471,6 +472,17 @@ def upload_log_to_github() -> bool:
     except Exception as e:
         logging.error(f"Error uploading log file to GitHub: {e}", exc_info=True)
         return False
+
+def _archive_analysis_in_background(results: dict, source_filename: str) -> None:
+    """在背景執行緒中同步分析歷史與 log 到 GitHub，讓主執行緒能立刻繼續渲染結果頁面。"""
+    try:
+        save_analysis_history_to_github(results, source_filename)
+    except Exception:
+        logging.error("Background analysis history sync failed.", exc_info=True)
+    try:
+        upload_log_to_github()
+    except Exception:
+        logging.error("Background log upload failed.", exc_info=True)
 
 @st.cache_data(show_spinner=False)
 def get_embedding(text):
@@ -1072,19 +1084,14 @@ def main():
                     st.session_state.rag_old_feedback_content = ""
                     st.session_state.rag_new_principle_content = ""
 
-                    # 步驟 3: 自動保存本次分析的完整結果
-                    with st.status("正在歸檔分析紀錄...", expanded=False) as status:
-                        if save_analysis_history_to_github(results, pdf_file.name):
-                            status.update(label="分析紀錄歸檔成功", state="complete")
-                        else:
-                            status.update(label="分析紀錄歸檔失敗", state="error")
-                    
-                    # 步驟 4: 上傳日誌檔案
-                    with st.status("正在上傳日誌檔案...", expanded=False) as status:
-                        if upload_log_to_github():
-                            status.update(label="日誌檔案上傳成功", state="complete")
-                        else:
-                            status.update(label="日誌檔案上傳失敗", state="error")
+                    # 步驟 3+4: 在背景執行緒歸檔分析紀錄與上傳日誌，避免這兩個 GitHub 網路呼叫
+                    # 卡住主執行緒，導致結果頁面（雷達圖、指標卡片等新元件）渲染時前端
+                    # 動態載入 JS 的請求在後端忙碌期間逾時失敗。
+                    threading.Thread(
+                        target=_archive_analysis_in_background,
+                        args=(results, pdf_file.name),
+                        daemon=True,
+                    ).start()
 
         # 顯示結果
         if st.session_state.get('res_t'):
