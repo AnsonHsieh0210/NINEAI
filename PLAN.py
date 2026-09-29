@@ -966,54 +966,6 @@ def create_gauge_chart(value, title):
 
 # ---------- 4. UI 介面 ----------
 
-def generate_radar_chart(results_t):
-    """根據九大透明性指標的符合機率繪製雷達圖"""
-    if not results_t:
-        return None
-        
-    categories = [item["title"] for item in TRANSPARENCY_9]
-    # 取得符合機率
-    values = [res.get('pass_probability', 0) for res in results_t]
-    
-    # 為了使雷達圖閉合，需要將第一個點重複加到最後
-    categories_closed = categories + [categories[0]]
-    values_closed = values + [values[0]]
-    
-    fig = go.Figure()
-    
-    fig.add_trace(go.Scatterpolar(
-        r=values_closed,
-        theta=categories_closed,
-        fill='toself',
-        fillcolor='rgba(99, 102, 241, 0.15)',  # 品牌紫羅蘭透光填滿
-        line=dict(color='rgb(99, 102, 241)', width=2.5),
-        name='符合機率 (%)'
-    ))
-    
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, 100],
-                ticksuffix='%',
-                gridcolor='rgba(156, 163, 175, 0.25)',
-                linecolor='rgba(156, 163, 175, 0.25)',
-                tickfont=dict(size=10)
-            ),
-            angularaxis=dict(
-                gridcolor='rgba(156, 163, 175, 0.25)',
-                linecolor='rgba(156, 163, 175, 0.25)',
-                tickfont=dict(size=11)
-            )
-        ),
-        showlegend=False,
-        margin=dict(l=45, r=45, t=30, b=30),
-        height=400,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-    )
-    return fig
-
 def format_percentage_metric(val):
     """將比例格式化為百分比字串，兼顧大於 1 已經乘以 100 的數字。"""
     val_f = _safe_float(val)
@@ -1097,30 +1049,21 @@ def main():
         if st.session_state.get('res_t'):
             st.header("3. 檢視分析結果")
             
-            # 顯示雷達圖與關鍵量化表現指標
-            col_radar, col_metrics = st.columns([11, 9])
-            with col_radar:
-                st.subheader("🕸️ 治理合規雷達圖 (Compliance Radar)")
-                radar_fig = generate_radar_chart(st.session_state['res_t'])
-                if radar_fig:
-                    st.plotly_chart(radar_fig, use_container_width=True)
-                else:
-                    st.info("尚無資料繪製雷達圖")
-                    
-            with col_metrics:
-                st.subheader("📈 關鍵量化表現指標")
-                metadata = st.session_state.get('metadata', {})
-                
-                # 卡片排版顯示從 metadata 中提取出的成效指標
-                m_col1, m_col2 = st.columns(2)
-                with m_col1:
-                    st.metric("AUC 面積", f"{_safe_float(metadata.get('auc', 0.0)):.2f}")
-                    st.metric("靈敏度 (Sensitivity)", format_percentage_metric(metadata.get('sensitivity', 0.0)))
-                    st.metric("陽性預測值 (PPV)", format_percentage_metric(metadata.get('ppv', 0.0)))
-                with m_col2:
-                    st.metric("準確度 (Accuracy)", format_percentage_metric(metadata.get('accuracy', 0.0)))
-                    st.metric("特異度 (Specificity)", format_percentage_metric(metadata.get('specificity', 0.0)))
-                    st.metric("陰性預測值 (NPV)", format_percentage_metric(metadata.get('npv', 0.0)))
+            # 顯示關鍵量化表現指標
+            st.subheader("📈 關鍵量化表現指標")
+            metadata = st.session_state.get('metadata', {})
+
+            # 卡片排版顯示從 metadata 中提取出的成效指標
+            m_col1, m_col2, m_col3 = st.columns(3)
+            with m_col1:
+                st.metric("AUC 面積", f"{_safe_float(metadata.get('auc', 0.0)):.2f}")
+                st.metric("陽性預測值 (PPV)", format_percentage_metric(metadata.get('ppv', 0.0)))
+            with m_col2:
+                st.metric("靈敏度 (Sensitivity)", format_percentage_metric(metadata.get('sensitivity', 0.0)))
+                st.metric("陰性預測值 (NPV)", format_percentage_metric(metadata.get('npv', 0.0)))
+            with m_col3:
+                st.metric("準確度 (Accuracy)", format_percentage_metric(metadata.get('accuracy', 0.0)))
+                st.metric("特異度 (Specificity)", format_percentage_metric(metadata.get('specificity', 0.0)))
 
             st.divider()
             st.subheader("📊 九大透明性指標細節")
