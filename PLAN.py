@@ -39,12 +39,81 @@ HISTORY_FILE_PATH = "analysis_history.jsonl" # 新增：歷史紀錄檔案路徑
 LOG_FILE_PATH_ON_GITHUB = "logs/analysis_log.log" # 新增：GitHub 上的日誌路徑
 
 # 模型設定常數
-FAST_MODEL = "gemini-2.5-flash"
 QUALITY_MODEL = "gemini-2.5-pro"
 EMBEDDING_MODELS = [
     os.getenv("GOOGLE_EMBEDDING_MODEL", "text-embedding-004"), # 優先使用新版模型
     "models/embedding-001", # 若新版失敗，則備援至舊版
 ]
+# 傳入 Gemini 的文件內容截斷長度，避免超過 context 限制與不必要的 Token 成本
+DOCUMENT_CONTEXT_MAX_CHARS = 12000
+
+# 單項合規指標分析的回傳結構。改用 response_schema 讓 SDK 強制輸出符合結構，
+# 不必再靠 prompt 文字描述 JSON 格式（並將欄位語意說明放進 description 讓模型參考）。
+ANALYSIS_RESULT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "status": {
+            "type": "string",
+            "enum": ["Exists", "Not Exists"],
+            "description": "Whether the uploaded document mentions this principle's concept or text at all.",
+        },
+        "summary": {
+            "type": "string",
+            "description": "Brief summary of the finding, in Traditional Chinese.",
+        },
+        "suggestion": {
+            "type": "string",
+            "description": (
+                "Specific, highly precise, and actionable recommendations in Traditional Chinese. "
+                "State exactly which elements are missing based on rigorous clinical evaluation "
+                "standards (such as confidence intervals, exclusion criteria, demographic details, "
+                "external validation centers, etc.). Also provide a concrete, professional, "
+                "medical-grade text template (using brackets like [請填寫...] for numeric or text "
+                "values) that the user can directly edit, copy-paste, and submit to pass the expert "
+                "reviews on the registration platform."
+            ),
+        },
+        "source": {
+            "type": "string",
+            "description": "Page number (e.g. '第 5 頁'), figure number, or section where the information was found, in Traditional Chinese when possible.",
+        },
+        "pass_probability": {
+            "type": "integer",
+            "description": "Confidence of compliance with the strict expert rubric, an integer between 0 and 100.",
+        },
+    },
+    "required": ["status", "summary", "suggestion", "source", "pass_probability"],
+}
+
+# 補充資訊擷取的回傳結構，取代 extract_metadata 內原本手寫的 JSON 結構文字。
+METADATA_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "name_zh": {"type": "string", "description": "The AI model's name, in Traditional Chinese."},
+        "name_en": {"type": "string", "description": "The AI model's name, in English."},
+        "summary_zh": {"type": "string", "description": "Brief summary of the AI model, in Traditional Chinese (max 50 characters)."},
+        "summary_en": {"type": "string", "description": "Brief summary of the AI model, in English (max 50 characters)."},
+        "clinical_use_zh": {"type": "string", "description": "The clinical use or intended purpose, in Traditional Chinese."},
+        "target_population_zh": {"type": "string", "description": "Applicable patient group or use setting, in Traditional Chinese."},
+        "input_data_zh": {"type": "string", "description": "Input data or input modality, in Traditional Chinese."},
+        "output_result_zh": {"type": "string", "description": "Model output or result type, in Traditional Chinese."},
+        "auc": {"type": "number", "description": "The AUC value, between 0 and 1. Default 0.0 if not found."},
+        "accuracy": {"type": "number", "description": "The Accuracy value, between 0 and 1. Default 0.0 if not found."},
+        "sensitivity": {"type": "number", "description": "The Sensitivity value, between 0 and 1. Default 0.0 if not found."},
+        "specificity": {"type": "number", "description": "The Specificity value, between 0 and 1. Default 0.0 if not found."},
+        "ppv": {"type": "number", "description": "The Positive Predictive Value (PPV), between 0 and 1. Default 0.0 if not found."},
+        "npv": {"type": "number", "description": "The Negative Predictive Value (NPV), between 0 and 1. Default 0.0 if not found."},
+        "lifecycle_plan": {"type": "string", "description": "Summary of the AI lifecycle management plan, in Traditional Chinese."},
+        "monitoring_plan": {"type": "string", "description": "Summary of the post-deployment monitoring plan, in Traditional Chinese."},
+        "update_plan": {"type": "string", "description": "Summary of the version update and retraining plan, in Traditional Chinese."},
+    },
+    "required": [
+        "name_zh", "name_en", "summary_zh", "summary_en", "clinical_use_zh",
+        "target_population_zh", "input_data_zh", "output_result_zh",
+        "auc", "accuracy", "sensitivity", "specificity", "ppv", "npv",
+        "lifecycle_plan", "monitoring_plan", "update_plan",
+    ],
+}
 
 if not GOOGLE_API_KEY:
     st.error("⚠️ 偵測到未設定 GOOGLE_API_KEY / 雲端金鑰！\n\n"
@@ -78,9 +147,6 @@ model = genai.GenerativeModel(
     },
     safety_settings=SAFETY_SETTINGS
 )
-
-# 初始化快速翻譯模型
-fast_model = genai.GenerativeModel(model_name=FAST_MODEL)
 
 # ---------- 2. 原則定義 ----------
 TRANSPARENCY_9 = [
@@ -219,36 +285,41 @@ def _translate_status_to_zh(status_en: str) -> str:
     # 處理 'Unknown' 和其他任何情況
     return "未知"
 
-def _translate_text_to_zh(text_en: str) -> str:
-    """輔助函式：將英文文字翻譯為繁體中文。"""
-    if not text_en or not isinstance(text_en, str):
-        return text_en # 如果是空的或不是字串，直接返回
-    
-    try:
-        # 使用全局快速翻譯模型進行翻譯 (避免在子執行緒中重複創建 Model 導致 API Key 遺失問題)
-        prompt = f"Translate the following English text to Traditional Chinese. Return only the translated text, without any extra explanations or labels:\n\n{text_en}"
-        response = fast_model.generate_content(prompt)
-        # 安全地提取文字
-        translated_text = "".join(part.text for part in response.parts).strip()
-        return sovereign_filter(translated_text) if translated_text else text_en
-    except Exception:
-        return text_en # 發生錯誤時，返回原始英文文字
+def _github_url(path: str) -> str:
+    return f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{path}"
+
+def _github_headers() -> dict:
+    return {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
+
+def _github_get_file(path: str) -> requests.Response:
+    """讀取 GitHub repo 內某檔案的原始 API 回應，呼叫端依 status_code (200/404/其他) 決定後續行為。"""
+    return requests.get(_github_url(path), headers=_github_headers())
+
+def _github_put_file(path: str, content: str, message: str, sha: str = None) -> requests.Response:
+    """將內容寫入（新增或覆蓋，視是否帶 sha）GitHub repo 內某檔案。"""
+    payload = {
+        "message": message,
+        "content": base64.b64encode(content.encode('utf-8')).decode('utf-8'),
+    }
+    if sha:
+        payload["sha"] = sha
+    return requests.put(_github_url(path), headers=_github_headers(), json=payload)
+
+def _decode_github_content(res_json: dict) -> str:
+    return base64.b64decode(res_json['content']).decode('utf-8')
 
 def get_rag_df_from_github():
     """從 GitHub 讀取目前的 RAG 庫，若失敗或未授權則自動讀取本地 RAG.csv 作為備援。"""
-    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
-    logging.info(f"Attempting to fetch RAG file from GitHub: {url}")
-    
+    logging.info(f"Attempting to fetch RAG file from GitHub: {_github_url(FILE_PATH)}")
+
     local_path = "RAG.csv"
-    
+
     try:
-        res = requests.get(url, headers=headers)
+        res = _github_get_file(FILE_PATH)
         if res.status_code == 200:
             logging.info("Successfully fetched RAG file from GitHub.")
-            content = base64.b64decode(res.json()['content']).decode('utf-8')
-            
-            # --- 核心修正處 ---
+            content = _decode_github_content(res.json())
+
             if content.strip():
                 try:
                     return pd.read_csv(StringIO(content))
@@ -264,31 +335,17 @@ def get_rag_df_from_github():
             return pd.read_csv(local_path)
         except Exception as e:
             logging.error(f"Failed to read local RAG.csv: {e}")
-            
+
     return pd.DataFrame(columns=["Principle", "UserFeedback"])
-
-def generalize_feedback(specific_feedback):
-    # 1. 先定義 Prompt 內容
-    prompt = f"""A user provided specific feedback for a medical AI review: '{specific_feedback}'
-Your task is to generalize this feedback into a concise, reusable principle for reviewing other documents or models.
-Return only the generalized principle as plain text, with no additional explanation.
-"""
-    response = model.generate_content(prompt, generation_config={"response_mime_type": "text/plain"})
-    return response.text.strip()     
-
 
 def update_rag_to_github(principle, feedback):
     """將回饋存入 GitHub"""
-    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
-
-    
     # 1. 取得現有資料
     df = get_rag_df_from_github()
     if "UserFeedback" not in df.columns: # 處理空檔案或格式錯誤
         df = pd.DataFrame(columns=["Principle", "UserFeedback"])
 
-    res = requests.get(url, headers=headers)
+    res = _github_get_file(FILE_PATH)
     sha = res.json().get('sha') if res.status_code == 200 else None
 
     # 2. 加入新列
@@ -300,15 +357,7 @@ def update_rag_to_github(principle, feedback):
 
     # 3. 轉回 CSV 並推送到 GitHub (使用 pandas 確保格式正確)
     csv_content = df.to_csv(index=False, encoding='utf-8')
-    encoded_content = base64.b64encode(csv_content.encode('utf-8')).decode('utf-8')
-    
-    payload = {
-        "message": f"Update RAG feedback for {principle}",
-        "content": encoded_content,
-        "sha": sha
-    }
-    
-    put_res = requests.put(url, headers=headers, json=payload)
+    put_res = _github_put_file(FILE_PATH, csv_content, f"Update RAG feedback for {principle}", sha)
     if not put_res.ok:
         logging.error(f"Failed to update RAG file on GitHub. Status: {put_res.status_code}, Response: {put_res.text}")
 
@@ -321,9 +370,6 @@ def save_analysis_history_to_github(analysis_results: dict, source_filename: str
         logging.error("Cannot save analysis history: GITHUB_TOKEN is not set.")
         st.error("無法保存分析歷史紀錄，因為 GITHUB_TOKEN 未設定。")
         return False
-
-    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{HISTORY_FILE_PATH}"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
 
     # 1. 準備要儲存的資料
     history_entry = {
@@ -338,10 +384,10 @@ def save_analysis_history_to_github(analysis_results: dict, source_filename: str
     sha = None
     existing_content = ""
     try:
-        res = requests.get(url, headers=headers)
+        res = _github_get_file(HISTORY_FILE_PATH)
         if res.status_code == 200:
             sha = res.json()['sha']
-            existing_content = base64.b64decode(res.json()['content']).decode('utf-8')
+            existing_content = _decode_github_content(res.json())
             logging.info("Successfully fetched existing analysis history.")
         elif res.status_code == 404:
             logging.warning("Analysis history file not found. A new one will be created.")
@@ -356,18 +402,10 @@ def save_analysis_history_to_github(analysis_results: dict, source_filename: str
 
     # 3. 組合新舊內容 (使用 JSON Lines 格式，每行一筆紀錄)
     updated_content = (existing_content.strip() + "\n" + new_content_line).strip()
-    encoded_content = base64.b64encode(updated_content.encode('utf-8')).decode('utf-8')
 
     # 4. 推送更新到 GitHub
-    payload = {
-        "message": f"Append analysis history for {source_filename} on {datetime.date.today()}",
-        "content": encoded_content,
-    }
-    if sha:
-        payload["sha"] = sha
-
     try:
-        put_res = requests.put(url, headers=headers, json=payload)
+        put_res = _github_put_file(HISTORY_FILE_PATH, updated_content, f"Append analysis history for {source_filename} on {datetime.date.today()}", sha)
         if put_res.status_code in [200, 201]:
             logging.info("Successfully saved analysis history to GitHub.")
             return True
@@ -407,14 +445,10 @@ def upload_log_to_github() -> bool:
         logging.error(f"Error reading local log file: {e}", exc_info=True)
         return False
 
-    # 2. Prepare for GitHub API call
-    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{LOG_FILE_PATH_ON_GITHUB}"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
-
-    # 3. Get current file SHA to update it (overwrite)
+    # 2. Get current file SHA to update it (overwrite)
     sha = None
     try:
-        res = requests.get(url, headers=headers)
+        res = _github_get_file(LOG_FILE_PATH_ON_GITHUB)
         if res.status_code == 200:
             sha = res.json()['sha']
         elif res.status_code != 404: # Ignore 404 (file not found), but log other errors
@@ -424,15 +458,9 @@ def upload_log_to_github() -> bool:
         logging.error(f"Error getting log file SHA from GitHub: {e}", exc_info=True)
         return False
 
-    # 4. Encode content and create payload
-    encoded_content = base64.b64encode(log_content.encode('utf-8')).decode('utf-8')
-    payload = {"message": f"Update analysis log on {datetime.datetime.now().isoformat()}", "content": encoded_content}
-    if sha:
-        payload["sha"] = sha
-
-    # 5. Push to GitHub
+    # 3. Push to GitHub
     try:
-        put_res = requests.put(url, headers=headers, json=payload)
+        put_res = _github_put_file(LOG_FILE_PATH_ON_GITHUB, log_content, f"Update analysis log on {datetime.datetime.now().isoformat()}", sha)
         if put_res.status_code in [200, 201]:
             logging.info("Successfully uploaded log file to GitHub.")
             return True
@@ -442,10 +470,6 @@ def upload_log_to_github() -> bool:
     except Exception as e:
         logging.error(f"Error uploading log file to GitHub: {e}", exc_info=True)
         return False
-
-# NOTE: The function 'analyze_item_with_react' was present but empty or incorrect.
-# The main analysis logic is handled by 'agent_executor', which is correctly called by 'run_full_analysis'.
-# This function can be safely removed or implemented if a non-ReAct path is desired.
 
 @st.cache_data(show_spinner=False)
 def get_embedding(text):
@@ -596,51 +620,39 @@ def perform_direct_analysis(item, full_text, page_images, rag_df):
         rag_history = get_rag_history(item['title'], full_text, rag_df)
         rubric_text = EXPERT_RUBRICS.get(item['title'], "必須符合國家醫療 AI 負責任性與透明性指標。")
 
-        # 2. 建立一個全面、直接的 Prompt
-        prompt = f"""You are an expert compliance analyst. Your task is to analyze the provided document (text and images) and historical context to determine if it complies with the principle: "{item['title']}".
+        # 2. 建立 Prompt（回傳結構已由 response_schema 強制，不需在文字中重述）
+        prompt = f"""You are an expert compliance analyst reviewing a medical AI project proposal (text and images) against the principle: "{item['title']}" — {item['desc']}
 
-Based on your comprehensive analysis of all provided materials, directly generate a single JSON object with the following structure. Do not output any other text, explanation, or markdown formatting.
-
-**Required JSON Structure:**
-{{
-  "status": "Exists" or "Not Exists",
-  "summary": "A brief summary based on the document's content. This summary MUST be in Traditional Chinese.",
-  "suggestion": "Specific, highly precise, and actionable recommendations in Traditional Chinese. It MUST state exactly which elements are missing based on rigorous clinical evaluation standards (such as confidence intervals, exclusion criteria, demographic details, external validation centers, etc.). Additionally, provide a concrete, professional, medical-grade text template (using brackets like [請填寫...] for numeric or text values) that the user can directly edit, copy-paste, and submit to successfully pass the expert reviews on the registration platform.",
-  "source": "The specific page number (e.g., '第 5 頁'), figure number, or section where the information was found. This source MUST be in Traditional Chinese when possible.",
-  "pass_probability": An integer between 0 and 100 representing the confidence of compliance.
-}}
-
-**Important Definitions for "status" and "pass_probability" (符合機率與存存在之定義分歧):**
-1. "status" (存不存在): Indicates whether the uploaded document mentions this principle's concept or text AT ALL. If yes, output "Exists" (存在相關文字). If no, output "Not Exists" (完全未提及).
-2. "pass_probability" (符合機率): Measures how closely the found text complies with the "Strict Auditing Rubrics (Expert Standard)" above. 
-   - Even if "status" is "Exists" (因為內容有提到相關文字而為存在), if the text fails to satisfy the rigorous expert standards (e.g., missing 95% Confidence Intervals, missing specific exclusion criteria, or missing version update triggers), the "pass_probability" MUST be evaluated very strictly and low (e.g., 20% to 55%), reflecting high likelihood of rejection by the medical experts on the platform.
-   - If "status" is "Not Exists", "pass_probability" must be 0.
-   - If the text perfectly meets the expert rubrics, output a high percentage (e.g., 85% to 100%).
-
---- DATA FOR ANALYSIS ---
-
-**1. Principle to Evaluate:**
-   - Title: "{item['title']}"
-   - Definition: "{item['desc']}"
-   - Strict Auditing Rubrics (Expert Standard):
+**Strict Auditing Rubrics (Expert Standard):**
 {rubric_text}
 
-**2. Historical Context from Knowledge Base:**
+**Important definitions for "status" and "pass_probability":**
+1. "status": whether the document mentions this principle's concept or text AT ALL — "Exists" or "Not Exists".
+2. "pass_probability": how closely the found text complies with the Strict Auditing Rubrics above.
+   - Even if "status" is "Exists", if the text fails to satisfy the rigorous expert standards (e.g., missing 95% Confidence Intervals, missing specific exclusion criteria, or missing version update triggers), "pass_probability" MUST be evaluated very strictly and low (20% to 55%), reflecting high likelihood of rejection by the medical experts on the platform.
+   - If "status" is "Not Exists", "pass_probability" must be 0.
+   - If the text perfectly meets the expert rubrics, output a high percentage (85% to 100%).
+
+Historical review experience from the knowledge base:
 {rag_history}
 
-**3. Full Document Text (for context):**
-{full_text[:12000]}
+Document text (may be truncated):
+{full_text[:DOCUMENT_CONTEXT_MAX_CHARS]}
 
---- END OF DATA ---
-
-Now, analyze all the provided document images and the text context to generate the final JSON response.
-"""
+Now, analyze all the provided document images and the text context. Write every text field in Traditional Chinese."""
 
         # 3. 構造多模態輸入並執行單次 API 呼叫
         content_parts = [prompt] + page_images
-        
+
         # 使用高品質的全局模型進行一次性分析 (避免在多執行緒中重複創建 Model 導致 API Key / ADC 丟失的 thread-local 認證問題)
-        response = model.generate_content(content_parts)
+        response = model.generate_content(
+            content_parts,
+            generation_config={
+                "response_mime_type": "application/json",
+                "response_schema": ANALYSIS_RESULT_SCHEMA,
+                "temperature": 0.1,
+            },
+        )
         
         # 直接解析來自模型的 JSON 回應
         result = json.loads(response.text)
@@ -769,48 +781,30 @@ def extract_metadata(full_text: str, file_name: str = "") -> dict:
         st.info("正在提取補充資訊...")
         prompt = f"""
 You are a Traditional Chinese data entry assistant for medical AI review reports.
-Extract as much useful report information as possible from the uploaded PDF text and filename.
+Extract as much useful report information as possible from the uploaded PDF text and filename below.
 
 Rules:
-- Return only one JSON object.
-- Text fields MUST be in Traditional Chinese unless the field name explicitly asks for English.
-- Do not leave text fields empty if the filename, title, abstract, introduction, method, or conclusion gives a reasonable clue.
-- If the document does not explicitly state a text field, write a concise Traditional Chinese note such as "文件未明確載明，請由使用者確認。"
-- Numeric performance fields must be numbers between 0 and 1. Use 0.0 only when no explicit numeric value is found.
+- Write every text field in Traditional Chinese, unless the field name explicitly asks for English (name_en, summary_en).
+- Leave a text field empty only if the document truly gives no clue for it (filename, title, abstract, introduction, method, and conclusion all give none).
+- Numeric performance fields must be a number between 0 and 1. Use 0.0 only when no explicit numeric value is found.
 - Prefer concrete wording from the document. Do not invent regulatory approvals or performance numbers.
-
-**Required JSON Structure:**
-{{
-  "name_zh": "The AI model's name in Traditional Chinese.",
-  "name_en": "The AI model's name in English.",
-  "summary_zh": "A brief summary of the AI model in Traditional Chinese (max 50 characters).",
-  "summary_en": "A brief summary of the AI model in English (max 50 characters).",
-  "clinical_use_zh": "The clinical use or intended purpose in Traditional Chinese.",
-  "target_population_zh": "Applicable patient group or use setting in Traditional Chinese.",
-  "input_data_zh": "Input data or input modality in Traditional Chinese.",
-  "output_result_zh": "Model output or result type in Traditional Chinese.",
-  "auc": "The AUC value. (float, default 0.0)",
-  "accuracy": "The Accuracy value. (float, default 0.0)",
-  "sensitivity": "The Sensitivity value. (float, default 0.0)",
-  "specificity": "The Specificity value. (float, default 0.0)",
-  "ppv": "The Positive Predictive Value (PPV). (float, default 0.0)",
-  "npv": "The Negative Predictive Value (NPV). (float, default 0.0)",
-  "lifecycle_plan": "A summary of the AI lifecycle management plan. (string)",
-  "monitoring_plan": "A summary of the post-deployment monitoring plan. (string)",
-  "update_plan": "A summary of the version update and retraining plan. (string)"
-}}
 
 --- FILENAME ---
 {file_name}
 
---- DOCUMENT TEXT (first 10000 characters) ---
-{full_text[:10000]}
+--- DOCUMENT TEXT (first {DOCUMENT_CONTEXT_MAX_CHARS} characters) ---
+{full_text[:DOCUMENT_CONTEXT_MAX_CHARS]}
 --- END OF TEXT ---
-
-Now, generate only the JSON object based on the text.
 """
         # 使用高品質的全局模型進行資訊提取 (動態覆寫配置以避免 thread-local 認證問題)
-        response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json", "temperature": 0.0})
+        response = model.generate_content(
+            prompt,
+            generation_config={
+                "response_mime_type": "application/json",
+                "response_schema": METADATA_SCHEMA,
+                "temperature": 0.0,
+            },
+        )
         return normalize_metadata(json.loads(response.text), file_name, full_text)
     except Exception as e:
         logging.error(f"Failed to extract metadata: {e}", exc_info=True)
