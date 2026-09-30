@@ -117,6 +117,45 @@ METADATA_SCHEMA = {
     ],
 }
 
+# 登錄內文專家審查（audit_direct_draft）的回傳結構，取代原本手寫的 JSON 結構文字。
+AUDIT_RESULT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "score": {
+            "type": "integer",
+            "description": "Compliance score (0-100) of the drafted text against the expert auditing rubrics.",
+        },
+        "verdict": {
+            "type": "string",
+            "enum": ["建議審查通過", "建議退件與修正"],
+            "description": "\"建議審查通過\" if score >= 85, otherwise \"建議退件與修正\".",
+        },
+        "rejection_reasons": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": (
+                "Specific bullet points, in Traditional Chinese, explaining exactly what "
+                "the draft is missing per the expert rubrics (e.g. missing 95% CI, missing "
+                "excluded hardware models). Empty list if there are no significant gaps."
+            ),
+        },
+        "precise_suggestions": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Surgically precise, actionable rewrite recommendations, in Traditional Chinese.",
+        },
+        "suggested_optimized_draft": {
+            "type": "string",
+            "description": (
+                "A rewritten, medical-grade exemplary version of the text integrating all "
+                "missing elements from the rubrics, in Traditional Chinese. Use bracket "
+                "placeholders like [請填寫...] for missing concrete data."
+            ),
+        },
+    },
+    "required": ["score", "verdict", "rejection_reasons", "precise_suggestions", "suggested_optimized_draft"],
+}
+
 if not GOOGLE_API_KEY:
     st.error("⚠️ 偵測到未設定 GOOGLE_API_KEY / 雲端金鑰！\n\n"
              "如果您是在本地端執行，請確認專案目錄下已建立 `.env` 檔案並填入 `GOOGLE_API_KEY=your_key_here`。\n\n"
@@ -696,7 +735,7 @@ def audit_direct_draft(principle_title, principle_desc, draft_text, rag_df):
         # 2. 從全局專責指標取得此原則的「硬性審查指標」(Rubrics)
         selected_rubric = EXPERT_RUBRICS.get(principle_title, "必須符合國家醫療 AI 負責任性與透明性指標。")
 
-        # 3. 構造 Prompt
+        # 3. 構造 Prompt（回傳結構已由 response_schema 強制，不需在文字中重述）
         prompt = f"""You are a senior TFDA/IRB clinical AI audit expert. Your task is to perform a rigorous second-stage compliance audit on the user's drafted registration text for the principle: "{principle_title}".
 
 Evaluate the drafted text strictly against the expert guidelines (Rubrics) and historical audit context provided below.
@@ -710,24 +749,17 @@ Evaluate the drafted text strictly against the expert guidelines (Rubrics) and h
 **User's Drafted Registration Text to Audit:**
 \"\"\"{draft_text}\"\"\"
 
-Determine if this text would be "Approved" or "Rejected" by an expert panel. Generate a highly detailed, professional evaluation in Traditional Chinese, and output ONLY a single JSON object.
-
-**Required JSON Structure:**
-{{
-  "score": An integer between 0 and 100 representing the compliance score,
-  "verdict": "建議審查通過" (if score >= 85) or "建議退件與修正" (if score < 85),
-  "rejection_reasons": [
-    "Specific bullet points explaining why the draft falls short of expert standards, mentioning precisely what is missing (e.g. '未提供 95% 信賴區間', '未指明排除之硬體型號'). MUST be in Traditional Chinese."
-  ],
-  "precise_suggestions": [
-    "Surgically precise, actionable rewrite recommendations for the user. MUST be in Traditional Chinese."
-  ],
-  "suggested_optimized_draft": "A beautifully rewritten exemplary version of the text that integrates ALL missing elements based on the rubrics. Use brackets like [請填寫...] for missing concrete data so the user can easily edit, copy-paste, and submit. This text MUST be in Traditional Chinese and represent a highly professional, medical-grade description."
-}}
-"""
+Determine if this text would be "Approved" or "Rejected" by an expert panel. Generate a highly detailed, professional evaluation. Write every text field in Traditional Chinese."""
 
         # 4. 呼叫 Gemini Quality model (動態覆寫配置以避免 thread-local 認證問題)
-        response = model.generate_content([prompt], generation_config={"response_mime_type": "application/json", "temperature": 0.2})
+        response = model.generate_content(
+            [prompt],
+            generation_config={
+                "response_mime_type": "application/json",
+                "response_schema": AUDIT_RESULT_SCHEMA,
+                "temperature": 0.2,
+            },
+        )
         result = json.loads(response.text)
         
         # 安全主權與在地術語過濾後處理
